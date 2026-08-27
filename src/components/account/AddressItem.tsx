@@ -53,14 +53,14 @@ export function AddressItem({ address }: { address: Address }) {
     return (
       <form
         action={handleUpdate}
-        className="flex flex-col gap-3 rounded border border-line bg-surface p-4"
+        className="flex flex-col gap-3 rounded-xl bg-surface p-4"
       >
         <input
           name="line1"
           required
           defaultValue={address.line1}
           placeholder="Calle y número"
-          className="rounded border border-line-strong bg-bg px-3 py-2 text-sm text-ink outline-none focus:border-copper"
+          className="rounded-xl bg-bg px-3.5 py-2.5 text-sm text-ink outline-none focus:ring-2 focus:ring-copper"
         />
         <div className="grid grid-cols-2 gap-3">
           <input
@@ -68,13 +68,13 @@ export function AddressItem({ address }: { address: Address }) {
             required
             defaultValue={address.city}
             placeholder="Ciudad"
-            className="rounded border border-line-strong bg-bg px-3 py-2 text-sm text-ink outline-none focus:border-copper"
+            className="rounded-xl bg-bg px-3.5 py-2.5 text-sm text-ink outline-none focus:ring-2 focus:ring-copper"
           />
           <input
             name="state"
             defaultValue={address.state ?? ""}
             placeholder="Departamento"
-            className="rounded border border-line-strong bg-bg px-3 py-2 text-sm text-ink outline-none focus:border-copper"
+            className="rounded-xl bg-bg px-3.5 py-2.5 text-sm text-ink outline-none focus:ring-2 focus:ring-copper"
           />
         </div>
         <input
@@ -82,21 +82,21 @@ export function AddressItem({ address }: { address: Address }) {
           required
           defaultValue={address.zip}
           placeholder="Código postal"
-          className="rounded border border-line-strong bg-bg px-3 py-2 text-sm text-ink outline-none focus:border-copper"
+          className="rounded-xl bg-bg px-3.5 py-2.5 text-sm text-ink outline-none focus:ring-2 focus:ring-copper"
         />
-        {error && <p className="font-mono text-xs text-copper">{error}</p>}
+        {error && <p className="text-xs text-copper">{error}</p>}
         <div className="flex gap-3">
           <button
             type="submit"
             disabled={pending}
-            className="rounded border border-copper bg-copper px-4 py-2 text-xs font-semibold text-[#faf6f1] hover:bg-copper-ink disabled:opacity-60"
+            className="rounded-full bg-copper px-4 py-2 text-xs font-semibold text-white hover:bg-copper-ink disabled:opacity-60"
           >
             {pending ? "Guardando…" : "Guardar cambios"}
           </button>
           <button
             type="button"
             onClick={() => setMode("view")}
-            className="rounded border border-line-strong px-4 py-2 text-xs text-ink hover:border-copper hover:text-copper"
+            className="rounded-full border border-line-strong px-4 py-2 text-xs text-ink hover:border-copper hover:text-copper"
           >
             Cancelar
           </button>
@@ -106,13 +106,13 @@ export function AddressItem({ address }: { address: Address }) {
   }
 
   return (
-    <div className="rounded border border-line bg-surface px-4 py-3">
+    <div className="rounded-xl bg-surface px-4 py-3">
       <div className="flex items-center justify-between gap-4 text-sm text-ink">
         <span className="min-w-0 truncate">
           {address.line1}, {address.city}
           {address.state ? `, ${address.state}` : ""} — {address.zip}
         </span>
-        <div className="flex flex-none items-center gap-3 font-mono text-xs">
+        <div className="flex flex-none items-center gap-3 text-xs">
           <button onClick={() => setMode("edit")} className="text-muted hover:text-copper">
             Editar
           </button>
@@ -125,7 +125,7 @@ export function AddressItem({ address }: { address: Address }) {
           </button>
         </div>
       </div>
-      {error && <p className="mt-2 font-mono text-xs text-copper">{error}</p>}
+      {error && <p className="mt-2 text-xs text-copper">{error}</p>}
     </div>
   );
 }

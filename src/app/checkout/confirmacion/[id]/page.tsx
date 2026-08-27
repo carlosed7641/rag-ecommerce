@@ -16,22 +16,20 @@ export default async function OrderConfirmationPage({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-16 md:px-8">
-      <div className="mb-8 flex items-center gap-2 font-mono text-[0.72rem] uppercase tracking-wider text-signal">
+      <div className="mb-8 flex items-center gap-2 text-sm font-medium text-signal">
         <span className="inline-block h-1.5 w-1.5 rounded-full bg-signal" />
         Orden confirmada
       </div>
-      <h1 className="mb-2 font-display text-2xl font-semibold text-ink">
+      <h1 className="mb-2 text-2xl font-extrabold text-ink">
         ¡Gracias por tu compra!
       </h1>
-      <p className="mb-9 font-mono text-xs text-muted">
-        Orden #{order.id.slice(0, 8)}
-      </p>
+      <p className="mb-9 text-sm text-muted">Orden #{order.id.slice(0, 8)}</p>
 
       <OrderReceipt order={order} items={items} />
 
       <Link
         href="/cuenta"
-        className="mt-10 inline-block font-mono text-sm text-copper hover:text-copper-ink"
+        className="mt-10 inline-block text-sm font-semibold text-copper hover:text-copper-ink"
       >
         Ver historial de órdenes →
       </Link>

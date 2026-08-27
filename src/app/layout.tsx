@@ -1,25 +1,13 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Work_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Manrope } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
-});
-
-const workSans = Work_Sans({
-  variable: "--font-work-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-});
-
-const ibmPlexMono = IBM_Plex_Mono({
-  variable: "--font-ibm-plex-mono",
-  subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -30,10 +18,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="es"
-      className={`${spaceGrotesk.variable} ${workSans.variable} ${ibmPlexMono.variable} h-full antialiased`}
-    >
+    <html lang="es" className={`${manrope.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-bg text-ink">
         <Header />
         <main className="flex-1">{children}</main>

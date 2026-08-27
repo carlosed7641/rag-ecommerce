@@ -15,14 +15,14 @@ export function OrderReceipt({ order, items }: { order: Order; items: OrderItem[
             <span className="text-ink">
               {item.product_name} × {item.quantity}
             </span>
-            <span className="font-mono text-muted">
+            <span className="text-muted">
               {formatCurrency(item.unit_price * item.quantity)}
             </span>
           </li>
         ))}
       </ul>
 
-      <div className="mt-6 flex flex-col gap-2 font-mono text-sm">
+      <div className="mt-6 flex flex-col gap-2 text-sm">
         <div className="flex justify-between">
           <span className="text-muted">Subtotal</span>
           <span className="text-ink">{formatCurrency(order.subtotal)}</span>
@@ -35,7 +35,7 @@ export function OrderReceipt({ order, items }: { order: Order; items: OrderItem[
             <span className="text-signal">−{formatCurrency(order.discount)}</span>
           </div>
         )}
-        <div className="flex justify-between text-base">
+        <div className="flex justify-between text-base font-bold">
           <span className="text-ink">Total</span>
           <span className="text-copper">{formatCurrency(order.total)}</span>
         </div>

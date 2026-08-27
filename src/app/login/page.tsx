@@ -36,9 +36,7 @@ export default function LoginPage() {
 
   return (
     <div className="mx-auto max-w-sm px-4 py-16 md:px-8">
-      <h1 className="mb-8 font-display text-2xl font-semibold text-ink">
-        Iniciar sesión
-      </h1>
+      <h1 className="mb-8 text-2xl font-extrabold text-ink">Iniciar sesión</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
         <Field label="Correo" error={errors.email?.message}>
@@ -46,7 +44,7 @@ export default function LoginPage() {
             type="email"
             autoComplete="email"
             {...register("email")}
-            className="w-full rounded border border-line-strong bg-surface px-3 py-2.5 text-sm text-ink outline-none focus:border-copper"
+            className="w-full rounded-xl bg-surface px-3.5 py-2.5 text-sm text-ink outline-none focus:ring-2 focus:ring-copper"
           />
         </Field>
 
@@ -55,26 +53,24 @@ export default function LoginPage() {
             type="password"
             autoComplete="current-password"
             {...register("password")}
-            className="w-full rounded border border-line-strong bg-surface px-3 py-2.5 text-sm text-ink outline-none focus:border-copper"
+            className="w-full rounded-xl bg-surface px-3.5 py-2.5 text-sm text-ink outline-none focus:ring-2 focus:ring-copper"
           />
         </Field>
 
-        {serverError && (
-          <p className="font-mono text-xs text-copper">{serverError}</p>
-        )}
+        {serverError && <p className="text-xs text-copper">{serverError}</p>}
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="mt-2 rounded border border-copper bg-copper px-6 py-3 text-sm font-semibold text-[#faf6f1] transition-colors hover:bg-copper-ink disabled:opacity-60"
+          className="mt-2 rounded-full bg-copper px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-copper-ink disabled:opacity-60"
         >
           {isSubmitting ? "Entrando…" : "Entrar"}
         </button>
       </form>
 
-      <p className="mt-6 font-mono text-xs text-muted">
+      <p className="mt-6 text-sm text-muted">
         ¿No tienes cuenta?{" "}
-        <Link href="/registro" className="text-copper hover:text-copper-ink">
+        <Link href="/registro" className="font-semibold text-copper hover:text-copper-ink">
           Regístrate
         </Link>
       </p>
@@ -93,11 +89,11 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="font-mono text-[0.68rem] uppercase tracking-wider text-muted">
+      <span className="text-xs font-semibold uppercase tracking-wide text-muted">
         {label}
       </span>
       {children}
-      {error && <span className="font-mono text-xs text-copper">{error}</span>}
+      {error && <span className="text-xs text-copper">{error}</span>}
     </label>
   );
 }

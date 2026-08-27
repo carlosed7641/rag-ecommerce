@@ -10,9 +10,7 @@ export default async function CheckoutPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-14 md:px-8">
-      <h1 className="mb-9 font-display text-2xl font-semibold text-ink">
-        Checkout
-      </h1>
+      <h1 className="mb-9 text-2xl font-extrabold text-ink">Checkout</h1>
       <CheckoutForm addresses={addresses ?? []} />
     </div>
   );

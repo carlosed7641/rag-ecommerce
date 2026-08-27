@@ -410,6 +410,27 @@ export type Database = {
         }
         Returns: string
       }
+      get_best_sellers: {
+        Args: { result_limit?: number }
+        Returns: {
+          category_id: string | null
+          compare_at_price: number | null
+          created_at: string
+          description: string | null
+          embedding: string | null
+          embedding_updated_at: string | null
+          id: string
+          images: string[]
+          is_active: boolean
+          material: string | null
+          name: string
+          price: number
+          slug: string
+          stock: number
+          tags: string[]
+          updated_at: string
+        }[]
+      }
       is_admin: { Args: never; Returns: boolean }
       match_products: {
         Args: {

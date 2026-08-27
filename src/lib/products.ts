@@ -81,6 +81,43 @@ export async function listProducts(filters: ProductFilters = {}) {
   return { products: data, total: count ?? 0, page, pageSize };
 }
 
+export async function getBestSellers(limit = 4) {
+  const supabase = await createClient();
+
+  const { data: sold, error } = await supabase.rpc("get_best_sellers", {
+    result_limit: limit,
+  });
+  if (error) throw error;
+
+  // Si todavía hay pocas ventas reales, se rellena con otros productos
+  // activos para que la sección nunca se vea vacía o a medias.
+  if (sold.length >= limit) return sold;
+
+  const excludeIds = sold.map((p) => p.id);
+  const { data: filler, error: fillerError } = await supabase
+    .from("products")
+    .select("*")
+    .eq("is_active", true)
+    .order("created_at", { ascending: true })
+    .limit(limit - sold.length + excludeIds.length);
+  if (fillerError) throw fillerError;
+
+  const padding = filler.filter((p) => !excludeIds.includes(p.id)).slice(0, limit - sold.length);
+  return [...sold, ...padding];
+}
+
+export async function getPriceBounds() {
+  const supabase = await createClient();
+  const [{ data: minRow }, { data: maxRow }] = await Promise.all([
+    supabase.from("products").select("price").order("price", { ascending: true }).limit(1).maybeSingle(),
+    supabase.from("products").select("price").order("price", { ascending: false }).limit(1).maybeSingle(),
+  ]);
+  return {
+    min: minRow ? Math.floor(minRow.price / 1000) * 1000 : 0,
+    max: maxRow ? Math.ceil(maxRow.price / 1000) * 1000 : 1000000,
+  };
+}
+
 export async function getProductBySlug(slug: string) {
   const supabase = await createClient();
   const { data, error } = await supabase

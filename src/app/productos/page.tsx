@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { listProducts, getCategories, type ProductFilters } from "@/lib/products";
+import { listProducts, getCategories, getPriceBounds, type ProductFilters } from "@/lib/products";
 import { ProductCard } from "@/components/product/ProductCard";
+import { PriceRangeSlider } from "@/components/product/PriceRangeSlider";
 
 type SearchParams = {
   category?: string;
@@ -27,44 +28,59 @@ export default async function ProductsPage({
     page,
   };
 
-  const [{ products, total, pageSize }, categories] = await Promise.all([
+  const [{ products, total, pageSize }, categories, priceBounds] = await Promise.all([
     listProducts(filters),
     getCategories(),
+    getPriceBounds(),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   function pageHref(overrides: Partial<SearchParams>) {
-    const params = new URLSearchParams({
-      ...(sp.category ? { category: sp.category } : {}),
-      ...(sp.min ? { min: sp.min } : {}),
-      ...(sp.max ? { max: sp.max } : {}),
-      ...(sp.sort ? { sort: sp.sort } : {}),
-      ...(sp.page ? { page: sp.page } : {}),
-      ...overrides,
-    });
-    // limpia claves vacías
-    for (const [k, v] of [...params.entries()]) if (!v) params.delete(k);
+    // Ojo: `new URLSearchParams({ page: undefined })` convierte el undefined
+    // en el string literal "undefined" (String(undefined)) — por eso se
+    // arma el objeto a mano, saltando cualquier valor vacío o undefined.
+    const merged: SearchParams = { ...sp, ...overrides };
+    const params = new URLSearchParams();
+    for (const [k, v] of Object.entries(merged)) {
+      if (v) params.set(k, v);
+    }
     const qs = params.toString();
     return qs ? `/productos?${qs}` : "/productos";
   }
 
+  const hasActiveFilters = Boolean(sp.category || sp.min || sp.max || (sp.sort && sp.sort !== "recientes"));
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-14 md:px-8">
       <div className="mb-9 flex flex-wrap items-end justify-between gap-6">
-        <h1 className="font-display text-2xl font-semibold text-ink">Catálogo</h1>
-        <span className="font-mono text-sm text-muted">
+        <h1 className="text-2xl font-extrabold text-ink">Catálogo</h1>
+        <span className="text-sm text-muted">
           {total} producto{total === 1 ? "" : "s"}
         </span>
       </div>
 
-      <div className="grid gap-10 md:grid-cols-[220px_1fr]">
-        <aside className="flex flex-col gap-8">
+      <div className="grid gap-10 md:grid-cols-[240px_1fr]">
+        <aside className="flex flex-col gap-9">
           <div>
-            <h2 className="mb-3 font-mono text-[0.68rem] uppercase tracking-wider text-muted">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="text-sm font-extrabold uppercase tracking-wide text-ink">
+                Filtro
+              </h2>
+              {hasActiveFilters && (
+                <Link
+                  href="/productos"
+                  className="text-xs font-semibold text-copper hover:text-copper-ink"
+                >
+                  Limpiar filtros
+                </Link>
+              )}
+            </div>
+
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">
               Categoría
-            </h2>
-            <ul className="flex flex-col gap-2 text-sm">
+            </h3>
+            <ul className="flex flex-col gap-2.5 text-sm">
               <li>
                 <Link
                   href={pageHref({ category: undefined, page: undefined })}
@@ -94,38 +110,25 @@ export default async function ProductsPage({
             </ul>
           </div>
 
-          <form className="flex flex-col gap-3" action="/productos" method="GET">
+          <form className="flex flex-col gap-4" action="/productos" method="GET">
             {sp.category && (
               <input type="hidden" name="category" value={sp.category} />
             )}
             {sp.sort && <input type="hidden" name="sort" value={sp.sort} />}
-            <h2 className="font-mono text-[0.68rem] uppercase tracking-wider text-muted">
-              Rango de precio (COP)
-            </h2>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                name="min"
-                min={0}
-                defaultValue={sp.min}
-                placeholder="Mín"
-                className="w-full rounded border border-line-strong bg-surface px-2.5 py-1.5 font-mono text-sm text-ink outline-none focus:border-copper"
-              />
-              <span className="text-muted">–</span>
-              <input
-                type="number"
-                name="max"
-                min={0}
-                defaultValue={sp.max}
-                placeholder="Máx"
-                className="w-full rounded border border-line-strong bg-surface px-2.5 py-1.5 font-mono text-sm text-ink outline-none focus:border-copper"
-              />
-            </div>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">
+              Rango de precio
+            </h3>
+            <PriceRangeSlider
+              boundsMin={priceBounds.min}
+              boundsMax={priceBounds.max}
+              defaultMin={sp.min ? Number(sp.min) : undefined}
+              defaultMax={sp.max ? Number(sp.max) : undefined}
+            />
             <button
               type="submit"
-              className="rounded border border-line-strong px-3 py-1.5 font-mono text-xs text-ink hover:border-copper hover:text-copper"
+              className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-ink/80"
             >
-              Aplicar
+              Filtrar
             </button>
           </form>
         </aside>
@@ -138,14 +141,14 @@ export default async function ProductsPage({
               )}
               {sp.min && <input type="hidden" name="min" value={sp.min} />}
               {sp.max && <input type="hidden" name="max" value={sp.max} />}
-              <label className="font-mono text-xs text-muted" htmlFor="sort">
+              <label className="text-sm text-muted" htmlFor="sort">
                 Ordenar
               </label>
               <select
                 id="sort"
                 name="sort"
                 defaultValue={sp.sort ?? "recientes"}
-                className="rounded border border-line-strong bg-surface px-2 py-1.5 font-mono text-xs text-ink outline-none focus:border-copper"
+                className="cursor-pointer rounded-full border border-line-strong bg-bg px-3 py-1.5 text-sm text-ink outline-none focus:border-copper"
               >
                 <option value="recientes">Más recientes</option>
                 <option value="precio_asc">Precio: menor a mayor</option>
@@ -153,7 +156,7 @@ export default async function ProductsPage({
               </select>
               <button
                 type="submit"
-                className="rounded border border-line-strong px-2.5 py-1.5 font-mono text-xs text-ink hover:border-copper hover:text-copper"
+                className="rounded-full border border-line-strong px-3 py-1.5 text-sm text-ink hover:border-copper hover:text-copper"
               >
                 Aplicar
               </button>
@@ -173,7 +176,7 @@ export default async function ProductsPage({
           )}
 
           {totalPages > 1 && (
-            <div className="mt-10 flex items-center justify-center gap-4 font-mono text-sm">
+            <div className="mt-10 flex items-center justify-center gap-4 text-sm">
               <Link
                 aria-disabled={page <= 1}
                 href={pageHref({ page: String(page - 1) })}

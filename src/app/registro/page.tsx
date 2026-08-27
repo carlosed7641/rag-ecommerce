@@ -41,15 +41,13 @@ export default function RegisterPage() {
 
   if (confirmEmailSent) {
     return (
-      <div className="mx-auto max-w-sm px-4 py-16 md:px-8 text-center">
-        <h1 className="mb-4 font-display text-2xl font-semibold text-ink">
-          Revisa tu correo
-        </h1>
+      <div className="mx-auto max-w-sm px-4 py-16 text-center md:px-8">
+        <h1 className="mb-4 text-2xl font-extrabold text-ink">Revisa tu correo</h1>
         <p className="text-muted">
           Te enviamos un enlace de confirmación. Ábrelo para activar tu cuenta
           y luego inicia sesión.
         </p>
-        <Link href="/login" className="mt-6 inline-block text-copper hover:text-copper-ink">
+        <Link href="/login" className="mt-6 inline-block font-semibold text-copper hover:text-copper-ink">
           Ir a iniciar sesión →
         </Link>
       </div>
@@ -58,9 +56,7 @@ export default function RegisterPage() {
 
   return (
     <div className="mx-auto max-w-sm px-4 py-16 md:px-8">
-      <h1 className="mb-8 font-display text-2xl font-semibold text-ink">
-        Crear cuenta
-      </h1>
+      <h1 className="mb-8 text-2xl font-extrabold text-ink">Crear cuenta</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
         <Field label="Nombre completo" error={errors.fullName?.message}>
@@ -68,7 +64,7 @@ export default function RegisterPage() {
             type="text"
             autoComplete="name"
             {...register("fullName")}
-            className="w-full rounded border border-line-strong bg-surface px-3 py-2.5 text-sm text-ink outline-none focus:border-copper"
+            className="w-full rounded-xl bg-surface px-3.5 py-2.5 text-sm text-ink outline-none focus:ring-2 focus:ring-copper"
           />
         </Field>
 
@@ -77,7 +73,7 @@ export default function RegisterPage() {
             type="email"
             autoComplete="email"
             {...register("email")}
-            className="w-full rounded border border-line-strong bg-surface px-3 py-2.5 text-sm text-ink outline-none focus:border-copper"
+            className="w-full rounded-xl bg-surface px-3.5 py-2.5 text-sm text-ink outline-none focus:ring-2 focus:ring-copper"
           />
         </Field>
 
@@ -86,26 +82,24 @@ export default function RegisterPage() {
             type="password"
             autoComplete="new-password"
             {...register("password")}
-            className="w-full rounded border border-line-strong bg-surface px-3 py-2.5 text-sm text-ink outline-none focus:border-copper"
+            className="w-full rounded-xl bg-surface px-3.5 py-2.5 text-sm text-ink outline-none focus:ring-2 focus:ring-copper"
           />
         </Field>
 
-        {serverError && (
-          <p className="font-mono text-xs text-copper">{serverError}</p>
-        )}
+        {serverError && <p className="text-xs text-copper">{serverError}</p>}
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="mt-2 rounded border border-copper bg-copper px-6 py-3 text-sm font-semibold text-[#faf6f1] transition-colors hover:bg-copper-ink disabled:opacity-60"
+          className="mt-2 rounded-full bg-copper px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-copper-ink disabled:opacity-60"
         >
           {isSubmitting ? "Creando cuenta…" : "Crear cuenta"}
         </button>
       </form>
 
-      <p className="mt-6 font-mono text-xs text-muted">
+      <p className="mt-6 text-sm text-muted">
         ¿Ya tienes cuenta?{" "}
-        <Link href="/login" className="text-copper hover:text-copper-ink">
+        <Link href="/login" className="font-semibold text-copper hover:text-copper-ink">
           Inicia sesión
         </Link>
       </p>
@@ -124,11 +118,11 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="font-mono text-[0.68rem] uppercase tracking-wider text-muted">
+      <span className="text-xs font-semibold uppercase tracking-wide text-muted">
         {label}
       </span>
       {children}
-      {error && <span className="font-mono text-xs text-copper">{error}</span>}
+      {error && <span className="text-xs text-copper">{error}</span>}
     </label>
   );
 }

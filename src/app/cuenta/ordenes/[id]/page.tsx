@@ -24,19 +24,19 @@ export default async function OrderDetailPage({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-14 md:px-8">
-      <Link href="/cuenta" className="mb-8 inline-block font-mono text-xs text-muted hover:text-copper">
+      <Link href="/cuenta" className="mb-8 inline-block text-sm text-muted hover:text-ink">
         ← Volver a mi cuenta
       </Link>
 
       <div className="mb-2 flex items-center gap-3">
-        <h1 className="font-display text-2xl font-semibold text-ink">
+        <h1 className="text-2xl font-extrabold text-ink">
           Orden #{order.id.slice(0, 8)}
         </h1>
-        <span className="font-mono text-xs text-signal">
+        <span className="text-sm font-medium text-signal">
           {STATUS_LABEL[order.status] ?? order.status}
         </span>
       </div>
-      <p className="mb-9 font-mono text-xs text-muted">
+      <p className="mb-9 text-sm text-muted">
         {new Date(order.created_at).toLocaleDateString("es-CO", {
           day: "numeric",
           month: "long",

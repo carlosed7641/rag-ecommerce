@@ -126,6 +126,18 @@ Todas las rutas construidas y probadas de extremo a extremo con un usuario real 
 - Direcciones: agregado editar y eliminar (antes solo se podían añadir).
 - Diagnosticado (no es bug): la demora de "varios segundos" al abrir la primera página tras `npm run dev` es el costo de compilación en frío de Turbopack — pasa una sola vez por arranque del servidor, no existe en producción.
 
+**Rediseño visual (blanco/minimalista):** identidad RagTech intacta (nombre, tono), paleta y tipografía cambiadas por completo.
+- Fondo blanco, tarjetas gris claro sin bordes, sin marcas de registro en las esquinas. Solo modo claro (se quitó el soporte de modo oscuro).
+- Tipografía única: **Manrope Variable** (reemplazó Space Grotesk/Work Sans/IBM Plex Mono).
+- Barra de rango de precio con doble control deslizante (`PriceRangeSlider.tsx`), límites reales tomados del catálogo (`getPriceBounds()`).
+- Aplicado a todo el sitio: home, catálogo, detalle, carrito, checkout + confirmación, cuenta + direcciones + detalle de orden, login, registro, búsqueda.
+- Regla global: todo `<button>`/`[role="button"]` tiene `cursor: pointer` (`cursor: not-allowed` si está deshabilitado) — verificado con `getComputedStyle` en el navegador.
+
+**Correcciones adicionales:**
+- Bug real: `pageHref()` en `/productos` generaba `page=undefined` literal en la URL (`new URLSearchParams({page: undefined})` lo convierte en el string `"undefined"`, no se limpiaba). Corregido construyendo los params a mano, saltando valores vacíos/undefined.
+- Botón "Limpiar filtros" en la sidebar de `/productos`, visible solo cuando hay categoría, precio u orden distinto del default aplicados.
+- Sección "Más vendidos" en el home, con el mismo estilo que "Recién llegados". Nueva función SQL `get_best_sellers(result_limit)` (agrega `order_items` por producto, `SECURITY DEFINER` porque agrega a través de todas las órdenes, no solo las del usuario que llama — solo expone filas de `products`, nunca datos de otras órdenes/usuarios). Si hay menos ventas reales que el límite pedido, se rellena con otros productos activos para que la sección nunca se vea vacía.
+
 ## Fase 2 (original) — Storefront
 
 Rutas en `src/app/(shop)/`:

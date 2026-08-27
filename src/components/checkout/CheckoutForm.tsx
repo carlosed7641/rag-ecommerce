@@ -86,21 +86,21 @@ export function CheckoutForm({ addresses }: { addresses: Address[] }) {
     <form action={handleSubmit} className="grid gap-10 md:grid-cols-[1fr_320px]">
       <div className="flex flex-col gap-6">
         <div>
-          <h2 className="mb-3 font-mono text-[0.68rem] uppercase tracking-wider text-muted">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">
             Dirección de envío
           </h2>
           <div className="flex flex-col gap-2">
             {addresses.map((a) => (
               <label
                 key={a.id}
-                className="flex cursor-pointer items-start gap-3 rounded border border-line bg-surface px-4 py-3 text-sm has-[:checked]:border-copper"
+                className="flex cursor-pointer items-start gap-3 rounded-xl bg-surface px-4 py-3 text-sm has-checked:ring-2 has-checked:ring-copper"
               >
                 <input
                   type="radio"
                   name="address"
                   checked={selectedAddressId === a.id}
                   onChange={() => setSelectedAddressId(a.id)}
-                  className="mt-1"
+                  className="mt-1 accent-copper"
                 />
                 <span>
                   {a.line1}, {a.city}
@@ -108,12 +108,13 @@ export function CheckoutForm({ addresses }: { addresses: Address[] }) {
                 </span>
               </label>
             ))}
-            <label className="flex cursor-pointer items-center gap-3 rounded border border-line bg-surface px-4 py-3 text-sm has-[:checked]:border-copper">
+            <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-surface px-4 py-3 text-sm has-checked:ring-2 has-checked:ring-copper">
               <input
                 type="radio"
                 name="address"
                 checked={selectedAddressId === "new"}
                 onChange={() => setSelectedAddressId("new")}
+                className="accent-copper"
               />
               Usar una dirección nueva
             </label>
@@ -125,46 +126,46 @@ export function CheckoutForm({ addresses }: { addresses: Address[] }) {
                 name="line1"
                 required
                 placeholder="Calle y número"
-                className="rounded border border-line-strong bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-copper"
+                className="rounded-xl bg-surface px-3.5 py-2.5 text-sm text-ink outline-none focus:ring-2 focus:ring-copper"
               />
               <div className="grid grid-cols-2 gap-3">
                 <input
                   name="city"
                   required
                   placeholder="Ciudad"
-                  className="rounded border border-line-strong bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-copper"
+                  className="rounded-xl bg-surface px-3.5 py-2.5 text-sm text-ink outline-none focus:ring-2 focus:ring-copper"
                 />
                 <input
                   name="state"
                   placeholder="Departamento"
-                  className="rounded border border-line-strong bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-copper"
+                  className="rounded-xl bg-surface px-3.5 py-2.5 text-sm text-ink outline-none focus:ring-2 focus:ring-copper"
                 />
               </div>
               <input
                 name="zip"
                 required
                 placeholder="Código postal"
-                className="rounded border border-line-strong bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-copper"
+                className="rounded-xl bg-surface px-3.5 py-2.5 text-sm text-ink outline-none focus:ring-2 focus:ring-copper"
               />
             </div>
           )}
         </div>
 
         <div>
-          <h2 className="mb-3 font-mono text-[0.68rem] uppercase tracking-wider text-muted">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">
             Cupón (opcional)
           </h2>
           <input
             value={couponCode}
             onChange={(e) => setCouponCode(e.target.value)}
             placeholder="Código de descuento"
-            className="w-full max-w-xs rounded border border-line-strong bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-copper"
+            className="w-full max-w-xs rounded-xl bg-surface px-3.5 py-2.5 text-sm text-ink outline-none focus:ring-2 focus:ring-copper"
           />
         </div>
       </div>
 
-      <div className="flex h-fit flex-col gap-4 rounded border border-line bg-surface p-5">
-        <h2 className="font-mono text-[0.68rem] uppercase tracking-wider text-muted">
+      <div className="flex h-fit flex-col gap-4 rounded-2xl bg-surface p-5">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">
           Resumen
         </h2>
         <ul className="flex flex-col gap-2 text-sm">
@@ -173,23 +174,23 @@ export function CheckoutForm({ addresses }: { addresses: Address[] }) {
               <span className="text-ink">
                 {i.name} × {i.quantity}
               </span>
-              <span className="font-mono text-muted">
+              <span className="text-muted">
                 {formatCurrency(i.price * i.quantity)}
               </span>
             </li>
           ))}
         </ul>
-        <div className="flex justify-between border-t border-line pt-3 font-mono text-sm">
+        <div className="flex justify-between border-t border-line pt-3 text-sm">
           <span className="text-muted">Subtotal</span>
-          <span className="text-ink">{formatCurrency(subtotal)}</span>
+          <span className="font-semibold text-ink">{formatCurrency(subtotal)}</span>
         </div>
 
-        {error && <p className="font-mono text-xs text-copper">{error}</p>}
+        {error && <p className="text-xs text-copper">{error}</p>}
 
         <button
           type="submit"
           disabled={pending}
-          className="rounded border border-copper bg-copper px-6 py-3 text-sm font-semibold text-[#faf6f1] transition-colors hover:bg-copper-ink disabled:opacity-60"
+          className="rounded-full bg-copper px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-copper-ink disabled:opacity-60"
         >
           {pending ? "Procesando…" : "Confirmar compra"}
         </button>

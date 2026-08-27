@@ -20,13 +20,13 @@ export default async function SearchResultsPage({
   return (
     <div className="mx-auto max-w-6xl px-4 py-14 md:px-8">
       <div className="mb-9">
-        <span className="font-mono text-[0.68rem] uppercase tracking-wider text-muted">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted">
           Búsqueda
         </span>
-        <h1 className="mt-2 break-words text-balance font-display text-2xl font-semibold text-ink">
+        <h1 className="mt-2 break-words text-balance text-2xl font-extrabold text-ink">
           Resultados para &ldquo;{q}&rdquo;
         </h1>
-        <p className="mt-1 font-mono text-sm text-muted">
+        <p className="mt-1 text-sm text-muted">
           {total} producto{total === 1 ? "" : "s"} encontrado
           {total === 1 ? "" : "s"}
         </p>
@@ -52,7 +52,7 @@ export default async function SearchResultsPage({
           </div>
 
           {totalPages > 1 && (
-            <div className="mt-10 flex items-center justify-center gap-4 font-mono text-sm">
+            <div className="mt-10 flex items-center justify-center gap-4 text-sm">
               <Link
                 href={`/buscar?q=${encodeURIComponent(q)}&page=${page - 1}`}
                 className={

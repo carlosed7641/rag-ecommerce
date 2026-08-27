@@ -35,16 +35,16 @@ export default async function AccountPage() {
     <div className="mx-auto max-w-3xl px-4 py-14 md:px-8">
       <div className="mb-10 flex items-start justify-between">
         <div>
-          <h1 className="break-words font-display text-2xl font-semibold text-ink">
+          <h1 className="break-words text-2xl font-extrabold text-ink">
             {profile?.full_name || "Mi cuenta"}
           </h1>
-          <p className="mt-1 font-mono text-xs text-muted">{user.email}</p>
+          <p className="mt-1 text-sm text-muted">{user.email}</p>
         </div>
         <LogoutButton />
       </div>
 
       <section className="mb-12">
-        <h2 className="mb-4 font-mono text-[0.68rem] uppercase tracking-wider text-muted">
+        <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-muted">
           Direcciones
         </h2>
         <div className="flex flex-col gap-3">
@@ -62,7 +62,7 @@ export default async function AccountPage() {
       </section>
 
       <section>
-        <h2 className="mb-4 font-mono text-[0.68rem] uppercase tracking-wider text-muted">
+        <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-muted">
           Historial de órdenes
         </h2>
         {!orders || orders.length === 0 ? (
@@ -77,18 +77,18 @@ export default async function AccountPage() {
                 <li key={o.id}>
                   <Link
                     href={`/cuenta/ordenes/${o.id}`}
-                    className="flex items-center justify-between gap-4 rounded border border-line bg-surface px-4 py-3 hover:border-copper"
+                    className="flex items-center justify-between gap-4 rounded-xl bg-surface px-4 py-3 hover:ring-2 hover:ring-copper"
                   >
                     <div className="min-w-0">
                       <div>
-                        <span className="font-mono text-xs text-muted">
+                        <span className="text-xs text-muted">
                           {new Date(o.created_at).toLocaleDateString("es-CO", {
                             day: "numeric",
                             month: "short",
                             year: "numeric",
                           })}
                         </span>
-                        <span className="ml-3 font-mono text-xs text-signal">
+                        <span className="ml-3 text-xs font-medium text-signal">
                           {STATUS_LABEL[o.status] ?? o.status}
                         </span>
                       </div>
@@ -96,7 +96,7 @@ export default async function AccountPage() {
                         <p className="mt-1 truncate text-sm text-ink">{preview}</p>
                       )}
                     </div>
-                    <span className="flex-none font-mono text-sm text-ink">
+                    <span className="flex-none text-sm font-semibold text-ink">
                       {formatCurrency(o.total)}
                     </span>
                   </Link>

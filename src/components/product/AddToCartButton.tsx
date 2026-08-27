@@ -29,7 +29,7 @@ export function AddToCartButton({ product }: { product: Product }) {
     return (
       <button
         disabled
-        className="w-full cursor-not-allowed rounded border border-line-strong px-6 py-3 text-sm font-semibold text-muted"
+        className="w-full rounded-full bg-surface px-6 py-3 text-sm font-semibold text-muted"
       >
         Agotado
       </button>
@@ -38,22 +38,20 @@ export function AddToCartButton({ product }: { product: Product }) {
 
   return (
     <div className="flex items-center gap-3">
-      <div className="flex items-center rounded border border-line-strong">
+      <div className="flex items-center rounded-full border border-line-strong">
         <button
           type="button"
           onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-          className="px-3 py-2 font-mono text-sm text-ink hover:text-copper"
+          className="px-3.5 py-2 text-sm text-ink hover:text-copper"
           aria-label="Reducir cantidad"
         >
           −
         </button>
-        <span className="min-w-[2ch] text-center font-mono text-sm text-ink">
-          {quantity}
-        </span>
+        <span className="min-w-[2ch] text-center text-sm text-ink">{quantity}</span>
         <button
           type="button"
           onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
-          className="px-3 py-2 font-mono text-sm text-ink hover:text-copper"
+          className="px-3.5 py-2 text-sm text-ink hover:text-copper"
           aria-label="Aumentar cantidad"
         >
           +
@@ -62,7 +60,7 @@ export function AddToCartButton({ product }: { product: Product }) {
       <button
         type="button"
         onClick={handleAdd}
-        className="flex-1 rounded border border-copper bg-copper px-6 py-3 text-sm font-semibold text-[#faf6f1] transition-colors hover:bg-copper-ink"
+        className="flex-1 rounded-full bg-copper px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-copper-ink"
       >
         {added ? "Añadido ✓" : "Añadir al carrito"}
       </button>
