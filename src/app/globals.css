@@ -1,26 +1,63 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --bg: #eef1ef;
+  --surface: #f8faf9;
+  --ink: #12181a;
+  --muted: #57636a;
+  --line: #c9d2d0;
+  --line-strong: #a9b4b1;
+  --copper: #b5652e;
+  --copper-ink: #7c420f;
+  --signal: #2f7a5c;
+  --focus: #2f6e7a;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #10161a;
+    --surface: #161d21;
+    --ink: #e7ecea;
+    --muted: #8fa0a0;
+    --line: #2a3438;
+    --line-strong: #3c4a4e;
+    --copper: #e08a4e;
+    --copper-ink: #f2b384;
+    --signal: #55b98e;
+    --focus: #7bc3d1;
   }
 }
 
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-copper: var(--copper);
+  --color-copper-ink: var(--copper-ink);
+  --color-signal: var(--signal);
+  --color-focus: var(--focus);
+  --font-display: var(--font-space-grotesk);
+  --font-body: var(--font-work-sans);
+  --font-mono: var(--font-ibm-plex-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body), "Segoe UI", sans-serif;
+}
+
+/* Anillo de foco por defecto para accesibilidad — se respeta .outline-none
+   en componentes que ya dan su propia señal visual de foco (ej. el buscador,
+   que resalta el borde con focus-within:border-copper). */
+:focus-visible:not(.outline-none) {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
 }

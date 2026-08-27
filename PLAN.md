@@ -106,7 +106,27 @@ Puntos clave:
 
 `scripts/seed.ts` (`npm run seed`, idempotente vía upsert por slug). 41 productos en 6 categorías (Audio, Cómputo, Hogar inteligente, Accesorios, Gaming, Fotografía), imágenes placeholder de picsum.photos por slug, precios variados (desde $44,000 hasta $770,000 **COP**, convertidos automáticamente desde una referencia en MXN a ~220 COP/MXN dentro del propio script), materiales distintos (para probar el filtro/semántica de material), 3 productos con stock 0 y 2 marcados `is_active: false` (para probar RLS y el CMS). Default de país en `addresses` cambiado a `'CO'`. Verificado que RLS oculta lo inactivo con la publishable key.
 
-## Fase 2 — Storefront
+## Fase 2 — Storefront ✅ COMPLETADA
+
+Todas las rutas construidas y probadas de extremo a extremo con un usuario real (creado y luego borrado vía Admin API): registro → login → añadir al carrito → checkout → `create_order` → confirmación. Verificado en DB que el stock se descuenta y la orden queda bien registrada.
+
+- Identidad visual de RagTech aplicada (tipografías Space Grotesk/Work Sans/IBM Plex Mono vía `next/font`, tokens de color con soporte claro/oscuro).
+- `/`, `/productos` (filtros por categoría/precio/orden + paginación, sin JS extra), `/productos/[slug]`, `/carrito` (Zustand + localStorage), `/checkout` + `/checkout/confirmacion/[id]`, `/cuenta` (perfil, direcciones, historial), `/login`, `/registro`, `/buscar`.
+- Buscador global en el header: dropdown en vivo (`/api/search/quick`, debounce 250ms) + Enter → `/buscar`.
+- Hallazgo real durante la prueba: Supabase Auth valida el dominio del correo (rechaza dominios inventados sin MX) y tiene rate-limit de envío de emails en el proyecto — nada que arreglar en el código, solo a tener en cuenta para pruebas futuras.
+
+**Correcciones post-entrega (feedback real del usuario):**
+- Imagen de producto sin padding (bleed hasta el borde de la tarjeta).
+- Buscador centrado en el header + quitado el subtítulo "TIENDA DE ELECTRÓNICA"; header responsive real en mobile (antes desbordaba).
+- Precio mínimo del filtro no puede ser negativo (cliente + servidor).
+- Anillo de foco azul no deseado: era el estilo global de accesibilidad ganándole a `outline-none` por orden de CSS — corregido respetando `.outline-none`.
+- Login/registro/logout usan recarga completa (`window.location.assign`) en vez de `router.push`, evitando que quedara una versión en caché de una página protegida pedida sin sesión (causaba el "me manda a login aunque ya inicié sesión" y, sospechosamente, también el fallo silencioso al guardar direcciones).
+- Historial de `/cuenta` ahora muestra los productos de cada orden (antes solo el total) y cada orden enlaza a `/cuenta/ordenes/[id]` con el detalle completo.
+- Página de detalle de orden optimizada: una sola consulta (orden + items embebidos) en vez de dos secuenciales — medido: ~600-800ms → ~170-180ms.
+- Direcciones: agregado editar y eliminar (antes solo se podían añadir).
+- Diagnosticado (no es bug): la demora de "varios segundos" al abrir la primera página tras `npm run dev` es el costo de compilación en frío de Turbopack — pasa una sola vez por arranque del servidor, no existe en producción.
+
+## Fase 2 (original) — Storefront
 
 Rutas en `src/app/(shop)/`:
 
