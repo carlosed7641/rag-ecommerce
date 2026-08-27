@@ -4,7 +4,7 @@ import { CartBadge } from "@/components/layout/CartBadge";
 
 export function Header() {
   return (
-    <header className="border-b border-line bg-bg">
+    <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-4 md:h-20 md:flex-nowrap md:px-8 md:py-0">
         <Link
           href="/"
