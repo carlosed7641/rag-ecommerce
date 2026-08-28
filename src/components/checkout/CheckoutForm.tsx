@@ -10,7 +10,13 @@ import type { Tables } from "@/lib/supabase/database.types";
 
 type Address = Tables<"addresses">;
 
-export function CheckoutForm({ addresses }: { addresses: Address[] }) {
+export function CheckoutForm({
+  addresses,
+  userId,
+}: {
+  addresses: Address[];
+  userId: string;
+}) {
   const router = useRouter();
   const isClient = useIsClient();
   const items = useCartStore((s) => s.items);
@@ -76,6 +82,22 @@ export function CheckoutForm({ addresses }: { addresses: Address[] }) {
     if (rpcError) {
       setError(rpcError.message);
       return;
+    }
+
+    // Si el usuario escribió una dirección nueva, la guardamos en su
+    // libreta de direcciones para que le quede disponible en /cuenta y en
+    // el próximo checkout — antes solo quedaba dentro de esta orden.
+    // Best-effort: si falla, no bloquea la confirmación de la compra.
+    if (selectedAddressId === "new") {
+      await supabase.from("addresses").insert({
+        user_id: userId,
+        line1: shippingAddress.line1,
+        city: shippingAddress.city,
+        state: shippingAddress.state,
+        zip: shippingAddress.zip,
+        country: shippingAddress.country,
+        is_default: addresses.length === 0,
+      });
     }
 
     clearCart();

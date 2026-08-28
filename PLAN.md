@@ -164,23 +164,33 @@ Rutas en `src/app/(shop)/`:
 
 ---
 
-## Fase 3 — CMS `/admin`
+## Fase 3 — CMS `/admin` ✅ COMPLETADA
 
-Rutas en `src/app/admin/`, protegidas por middleware + verificación de `profiles.role = 'admin'` en el layout del servidor (el middleware solo no basta).
+Rutas en `src/app/admin/`, protegidas en dos capas: el proxy (`src/proxy.ts`) exige sesión iniciada, y `requireAdmin()` (`src/lib/admin.ts`) en el layout del servidor exige además `profiles.role = 'admin'` — el proxy solo no alcanza porque no puede leer `profiles` de forma confiable en cada request. Verificado con un usuario `customer` real: `/admin` redirige a `/`, y un POST directo a la REST API de Supabase con su token devuelve 403 (RLS), confirmando que la protección no depende solo de la UI.
 
 | Ruta | Función |
 |---|---|
-| `/admin` | Dashboard: ventas, órdenes recientes, productos sin stock |
-| `/admin/productos` | Tabla con búsqueda, crear/editar/borrar |
-| `/admin/productos/[id]` | Form completo + subida de imágenes a Supabase Storage |
-| `/admin/categorias` | CRUD |
-| `/admin/ordenes` | Listado + cambio de estado |
-| `/admin/cupones` | CRUD |
-| `/admin/usuarios` | Listado, promover a admin |
+| `/admin` | Dashboard: ventas totales, nº de órdenes, órdenes recientes, productos con poco stock |
+| `/admin/productos` | Tabla con búsqueda por nombre, crear/editar/borrar |
+| `/admin/productos/nuevo`, `/admin/productos/[id]` | Form completo (`ProductForm.tsx`) + subida de imágenes al bucket `product-images` |
+| `/admin/categorias` | Listado + alta (borrado deja los productos asociados sin categoría vía `ON DELETE SET NULL`) |
+| `/admin/ordenes`, `/admin/ordenes/[id]` | Listado + detalle reutilizando `OrderReceipt` + cambio de estado |
+| `/admin/cupones` | CRUD + activar/desactivar |
+| `/admin/usuarios` | Listado (correo real vía Admin API + rol de `profiles`), promover/quitar admin — no se puede auto-degradar |
 
-**Hook clave:** al crear o actualizar un producto (nombre, descripción, material o tags), marcar `embedding_updated_at = null`. Un endpoint `/api/embeddings/sync` (o un cron de Vercel) recalcula los embeddings pendientes. Sin esto el chat responde con datos viejos — es el fallo más común de estos sistemas.
-
-Reutilizar entre storefront y admin: los schemas Zod de `src/lib/schemas/product.ts` sirven de una vez para el form del CMS, la validación del API route y el input schema de la tool del chat.
+- Bucket `product-images` en Supabase Storage: lectura pública, escritura solo `is_admin()` (políticas en `storage.objects`).
+- **Hook para Fase 4:** al editar un producto (`updateProduct`), se marca `embedding_updated_at = null` — verificado en DB tras un edit real.
+- Schemas Zod compartidos en `src/lib/schemas/product.ts` (`productSchema`, `categorySchema`, `couponSchema`) — mismos que usará el input schema de las tools del chat en Fase 4.
+- Verificado de extremo a extremo con tu cuenta real (promovida a `admin`) y usuarios de prueba desechables: crear producto (con imagen subida al bucket) → aparece en la tienda pública → editar → eliminar (verificado vía REST autenticado, sin pasar por `window.confirm()` que el harness no automatiza); categoría creada/borrada; cupón creado/borrado; cambio de estado de una orden real confirmado en DB y revertido; guard de admin y RLS rechazando a un usuario `customer`.
+- **Layout separado**: `/admin`, `/login` y `/registro` NO llevan el header/footer de la tienda (sin buscador ni nav de catálogo). Se logró moviendo las rutas públicas de la tienda (`/`, `/productos`, `/carrito`, `/checkout`, `/cuenta`, `/buscar`) a un route group `src/app/(shop)/` con su propio layout (`Header`+`Footer`); el layout raíz quedó solo con la fuente y el `<body>`. `/admin` ya tenía su propio layout con sidebar, así que no necesitó cambios. `/login` y `/registro` además se movieron a su propio grupo `(auth)` con un layout que centra el formulario vertical y horizontalmente (antes quedaba pegado arriba, sin el `<main>` de la tienda que lo centraba).
+- **Redirect `?next=`**: si el proxy manda a `/login` por entrar sin sesión a una ruta protegida, ahora vuelve a esa misma página al loguearse (antes siempre iba a `/cuenta`). El proxy agrega `?next=/ruta-original`; login/registro lo leen y usan `safeRedirectTarget()` (en `src/lib/safeRedirect.ts`) para evitar que un `next` armado a mano redirija a otro dominio.
+- **Bug real corregido — dirección nueva en checkout no se guardaba**: `CheckoutForm` armaba el objeto de envío solo para la orden (`shipping_address` jsonb) pero nunca insertaba en la tabla `addresses`. Ahora, si el usuario eligió "dirección nueva", se guarda en su libreta después de crear la orden (best-effort, no bloquea la confirmación si falla) — verificado en DB y en `/cuenta`.
+- **Bug real corregido — `/cuenta` mostraba órdenes de todos los usuarios a una cuenta admin**: las queries de `orders` en `/cuenta` y `/cuenta/ordenes/[id]` no filtraban por `user_id`, confiaban solo en RLS — y la política de `orders` deja pasar también a los admins (a propósito, para que `/admin` funcione). Un cliente que además es admin veía el historial completo de la tienda en su propia cuenta. Corregido agregando `.eq("user_id", user.id)` explícito en `/cuenta`, y un parámetro `userId` opcional en `getOrderWithItems()` que las páginas de cliente (`/cuenta/ordenes/[id]`, `/checkout/confirmacion/[id]`) ahora pasan siempre; `/admin/ordenes/[id]` sigue llamándola sin `userId` a propósito. Verificado con un usuario de prueba no-admin: solo ve su propia orden.
+- **Panel `/admin` fijo y responsive**: el layout (`admin/layout.tsx`) ahora tiene `min-h-dvh` para no achicarse al cambiar entre tabs con distinta cantidad de contenido (Dashboard corto vs. tabla larga de Productos). `AdminNav` es `sticky` en desktop (`md:sticky md:top-10 md:self-start`) — la sidebar no se mueve al scrollear una tabla larga. En mobile se convierte en una barra compacta arriba (nombre + "← Tienda") con los links de navegación en una fila con scroll horizontal, en vez de apretarse o desbordar la pantalla. Verificado a 390px de ancho y con scroll largo en Productos.
+- **Bug real corregido — imágenes del form de producto (upload)**: `ProductForm` subía cada imagen a Storage (bucket `product-images`) apenas se seleccionaba el archivo, antes de guardar nada — y si se abandonaba el form sin guardar, la imagen quedaba huérfana en el bucket para siempre. Reescrito: el archivo elegido queda solo como preview en memoria (`URL.createObjectURL`, con badge "Nueva") y recién se sube a Storage al hacer submit (Crear/Guardar), justo antes de llamar a la server action — si la subida falla, no se crea ni actualiza el producto.
+- **Bug real corregido — clickear cerca de una imagen la borraba**: el campo "Imágenes" usaba el componente compartido `Field`, que envuelve su contenido en un `<label>` sin `htmlFor`. Sin un target explícito, el navegador asocia ese `<label>` implícitamente al primer elemento "labelable" que encuentra adentro (según el spec de HTML, `<button>` cuenta como labelable) — que en este caso era el botón "×" de la primera miniatura, no el input de archivo. Resultado: **cualquier click dentro de todo el campo** (la imagen, el texto de ayuda, lo que sea) disparaba ese botón y borraba la primera imagen; al desaparecer esa, la siguiente pasaba a ser "la primera" y el próximo click de refilón la borraba también — de ahí el patrón "se borra una, y después otra" que reportó el usuario. Corregido sacando ese campo del `Field` compartido (usa un `<div>` normal en vez de `<label>`) — el botón "Quitar" se dejó tal como estaba antes (overlay que cubre la miniatura, visible al hover), ya que el problema nunca fue ese diseño sino el `<label>` implícito de `Field`. Verificado disparando clicks programáticos exactos sobre la imagen y sobre el texto de ayuda: ya no borran nada; el botón "Quitar" sigue funcionando al hacer click de verdad sobre él.
+- **Galería de imágenes en `/productos/[slug]`**: si el producto tiene más de una imagen, ahora se ven miniaturas debajo de la principal (`ProductGallery.tsx`, client component) — click en una miniatura cambia la imagen grande, con anillo cobre marcando cuál está activa. Con una sola imagen no se muestran miniaturas (como antes). Verificado con un producto de 2 imágenes reales y otro de 1.
+- **Auto-slug en el form de producto**: al crear un producto nuevo, el campo Slug se completa solo mientras se escribe el Nombre (minúsculas, sin tildes, espacios → guion). Deja de seguir al Nombre en cuanto el admin edita el Slug a mano (no se vuelve a pisar), y nunca se autocompleta al editar un producto existente (no queremos romper un slug ya publicado solo porque cambió el nombre). Verificado: "RagTech Auriculares Pro Máx" → `ragtech-auriculares-pro-max`, y una edición manual del slug sobrevive a seguir escribiendo en Nombre.
 
 ---
 

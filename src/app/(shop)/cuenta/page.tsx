@@ -24,11 +24,20 @@ export default async function AccountPage() {
   const [{ data: profile }, { data: orders }, { data: addresses }] =
     await Promise.all([
       supabase.from("profiles").select("full_name, role").eq("id", user.id).single(),
+      // Filtrado explícito por user_id: la política RLS de "orders" también
+      // deja pasar a los admins (para que /admin vea cualquier orden), así
+      // que sin este filtro un cliente que además es admin vería el
+      // historial de TODOS los usuarios en su propia cuenta.
       supabase
         .from("orders")
         .select("id, status, total, created_at, order_items(product_name, quantity)")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false }),
-      supabase.from("addresses").select("*").order("created_at", { ascending: false }),
+      supabase
+        .from("addresses")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false }),
     ]);
 
   return (

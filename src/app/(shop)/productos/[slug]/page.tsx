@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getProductBySlug } from "@/lib/products";
 import { formatCurrency } from "@/lib/format";
 import { AddToCartButton } from "@/components/product/AddToCartButton";
+import { ProductGallery } from "@/components/product/ProductGallery";
 
 export default async function ProductDetailPage({
   params,
@@ -36,14 +37,7 @@ export default async function ProductDetailPage({
       </nav>
 
       <div className="grid gap-14 md:grid-cols-2">
-        <div className="aspect-square overflow-hidden rounded-2xl bg-surface">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={product.images[0]}
-            alt={product.name}
-            className="h-full w-full object-cover"
-          />
-        </div>
+        <ProductGallery images={product.images} name={product.name} />
 
         <div className="flex flex-col gap-5">
           {product.material && (

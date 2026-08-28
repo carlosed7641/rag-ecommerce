@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 import { getOrderWithItems } from "@/lib/orders";
 import { OrderReceipt } from "@/components/orders/OrderReceipt";
 
@@ -9,7 +10,13 @@ export default async function OrderConfirmationPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const result = await getOrderWithItems(id);
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) notFound();
+
+  const result = await getOrderWithItems(id, { userId: user.id });
 
   if (!result) notFound();
   const { order, items } = result;

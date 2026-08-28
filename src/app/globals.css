@@ -56,3 +56,18 @@ button:disabled,
 [aria-disabled="true"] {
   cursor: not-allowed;
 }
+
+/* Input estándar reutilizado por los forms del CMS (/admin). */
+.input {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid var(--line-strong);
+  background: var(--bg);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--ink);
+}
+.input:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--copper);
+}

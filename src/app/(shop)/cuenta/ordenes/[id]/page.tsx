@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 import { getOrderWithItems } from "@/lib/orders";
 import { OrderReceipt } from "@/components/orders/OrderReceipt";
 
@@ -16,9 +17,17 @@ export default async function OrderDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const result = await getOrderWithItems(id);
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) notFound();
 
-  // RLS ya impide leer órdenes ajenas — si no aparece, no existe o no es tuya.
+  // Filtrado explícito por user_id, no solo RLS: la política de "orders"
+  // también deja pasar a los admins (para /admin), así que un cliente que
+  // además es admin no debe ver órdenes ajenas en sus propias páginas.
+  const result = await getOrderWithItems(id, { userId: user.id });
+
   if (!result) notFound();
   const { order, items } = result;
 
