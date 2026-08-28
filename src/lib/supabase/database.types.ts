@@ -1,5 +1,3 @@
-// Generado desde el esquema real de Supabase con el MCP (mcp__supabase__generate_typescript_types).
-// No editar a mano — se regenera cada vez que cambie el esquema (nueva migración).
 export type Json =
   | string
   | number
@@ -12,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -430,20 +428,33 @@ export type Database = {
           tags: string[]
           updated_at: string
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "products"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       is_admin: { Args: never; Returns: boolean }
       match_products: {
         Args: {
+          filter_category?: string
           filter_max_price?: number
+          filter_min_price?: number
           match_count?: number
           query_embedding: string
         }
         Returns: {
+          compare_at_price: number
           description: string
           id: string
+          images: string[]
+          material: string
           name: string
           price: number
           similarity: number
+          slug: string
+          stock: number
         }[]
       }
     }

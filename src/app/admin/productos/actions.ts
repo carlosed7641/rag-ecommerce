@@ -5,6 +5,16 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/admin";
 import { productSchema } from "@/lib/schemas/product";
+import { syncPendingEmbeddings } from "@/lib/embeddings";
+
+// Fire-and-forget: no bloquea el redirect del form ni falla la mutación si
+// Voyage AI está caído. Si algo sale mal, el producto queda con
+// embedding_updated_at = null y el próximo sync (o el cron) lo recoge.
+function triggerEmbeddingSync() {
+  syncPendingEmbeddings().catch((err) => {
+    console.error("[embeddings] sync falló tras guardar producto:", err);
+  });
+}
 
 export type ProductActionState = { error?: string } | null;
 
@@ -71,6 +81,7 @@ export async function createProduct(
 
   revalidatePath("/admin/productos");
   revalidatePath("/productos");
+  triggerEmbeddingSync();
   redirect("/admin/productos");
 }
 
@@ -118,6 +129,7 @@ export async function updateProduct(
 
   revalidatePath("/admin/productos");
   revalidatePath("/productos");
+  triggerEmbeddingSync();
   redirect("/admin/productos");
 }
 

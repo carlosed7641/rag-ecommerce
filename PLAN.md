@@ -194,49 +194,45 @@ Rutas en `src/app/admin/`, protegidas en dos capas: el proxy (`src/proxy.ts`) ex
 
 ---
 
-## Fase 4 — Chat RAG
+## Fase 4 — Chat RAG ✅ COMPLETADA
 
-### Generación de embeddings
+**Decisión de acceso:** el chat es de cara a cualquier visitante, con o sin sesión — es un asistente de compras, restringirlo a admins le quita el sentido (el admin ya tiene `/admin`). Único matiz: `get_order_status` solo se agrega a la lista de tools si hay sesión iniciada, y siempre resuelve con el `user_id` de esa sesión — nunca con uno que "diga" el modelo.
 
-`src/lib/embeddings.ts`:
-- Texto a embeber por producto: `"${name}. ${description}. Material: ${material}. Categoría: ${category}. Tags: ${tags}"`.
-- Llamada a Voyage AI (`voyage-4-lite`, `input_type: "document"`), en lotes de 128.
-- Al consultar, embeber la query con `input_type: "query"` (asimétrico — mejora la recuperación notablemente).
-- Script `scripts/backfill-embeddings.ts` para el catálogo inicial.
+### Esquema y embeddings
 
-Función SQL de búsqueda vectorial:
+- `products.embedding vector(1024)` y `embedding_updated_at` ya existían desde la Fase 1. Se agregó el índice `products_embedding_hnsw_idx` (HNSW, coseno) y la función SQL `match_products(query_embedding, match_count, filter_max_price, filter_min_price, filter_category)` — solo devuelve productos activos, join a `categories` para el filtro opcional.
+- `src/lib/embeddings.ts`: llama a Voyage AI (`voyage-3.5`) en lotes de 128; texto embebido por producto = nombre + descripción + material + categoría + tags; `input_type` asimétrico (`document` al indexar, `query` al buscar).
+- `syncPendingEmbeddings()` recalcula todo lo que tenga `embedding_updated_at = null`. Expuesto en `/api/embeddings/sync` (solo admin) y disparado fire-and-forget desde `createProduct`/`updateProduct` — no bloquea el redirect del form; si Voyage falla, el producto queda pendiente para el próximo sync.
+- `scripts/backfill-embeddings.ts` (`npm run backfill-embeddings`) — corrido contra el catálogo real: 41/41 productos con embedding.
+- **Nota de limpieza:** existía un overload viejo de `match_products` (3 argumentos) de cuando se armó el schema en la Fase 1; se eliminó para no dejar dos firmas ambiguas.
 
-```sql
-create function match_products(
-  query_embedding vector(1024),
-  match_count int default 8,
-  filter_max_price numeric default null
-) returns table (id uuid, name text, price numeric, description text, similarity float)
-```
+### Las tres herramientas (`src/lib/chat/tools.ts`)
 
-### Las tres herramientas
+Definidas con `betaZodTool` de `@anthropic-ai/sdk/helpers/beta/zod`. `buildChatTools(userId, collected)` arma la lista **por request** (no hay tools ni estado a nivel de módulo) para que no se mezclen resultados entre usuarios concurrentes:
 
-`src/lib/chat/tools.ts`, definidas con `betaZodTool` de `@anthropic-ai/sdk/helpers/beta/zod`:
+1. **`search_products_by_attributes`** — filtros exactos (precio, categoría, material, stock, orden) vía query builder de Supabase, nunca SQL concatenado.
+2. **`search_products_semantic`** — embebe la pregunta y llama a `match_products`; también acepta `minPrice`/`maxPrice`, así que sola puede resolver algo como "algodón por menos de 20 mil" sin necesitar la otra tool.
+3. **`get_order_status`** — el `user_id` viene cerrado por closure desde la sesión del servidor, nunca del input; usa el cliente admin pero siempre filtra por ese `user_id` explícito.
 
-1. **`search_products_by_attributes`** — filtros estructurados. Params: `max_price`, `min_price`, `category`, `material`, `in_stock`, `sort_by`, `limit`. Construye la query con el query builder de Supabase (nunca concatenación de strings). Responde "productos menores a 10 pesos".
-2. **`search_products_semantic`** — params: `query` (string), `limit`. Embebe la query y llama a `match_products`. Responde "algo cómodo para el verano".
-3. **`get_order_status`** — params: `order_id`. **Solo se registra si hay usuario autenticado**, y consulta siempre con el `user_id` de la sesión del servidor, jamás con uno que venga del input de la tool. Sin esto, cualquiera pide las órdenes de otro.
+**Bug real corregido — tarjetas de producto no coincidían con la respuesta:** cuando Claude encadenaba dos tool calls en el mismo turno (p. ej. un filtro de precio genérico y después la búsqueda semántica de "audífonos"), las tarjetas mostradas se armaban acumulando los resultados de **todas** las llamadas en orden — así que productos de la primera búsqueda (sin relación con lo pedido) aparecían antes que los realmente relevantes de la segunda, aunque el texto sí mencionaba los correctos. Corregido: cada tool call reemplaza el array `collected` en vez de acumular, así las tarjetas siempre reflejan la búsqueda más específica/última del turno. Verificado en el navegador con "audífonos de menos de 350 mil": antes mostraba un cable, un sensor de puerta y un bombillo; después, Audífonos Modernos y RagTech Headset G1.
 
-Claude combina herramientas por su cuenta: "algo de algodón por menos de 20" → semántica + filtro de precio.
+### Endpoint (`src/app/api/chat/route.ts`)
 
-### Endpoint
+- `anthropic.beta.messages.toolRunner({ model: "claude-opus-5", max_tokens: 2048, system, messages, tools })`, iterado y emitido como SSE (`event: text|products|done|error`).
+- System prompt: solo responde temas de la tienda (si preguntan por el clima u otro tema ajeno, dice que no tiene esa información), nunca inventa productos/precios/stock — todo sale de las tools, tono cercano en español.
+- Persistencia en `chat_sessions`/`chat_messages` vía cliente **admin** (no el de request): la política RLS `user_id = auth.uid()` no deja pasar `insert` de un visitante anónimo porque `null = null` no es verdadero en SQL — el guard de seguridad real ya está en el propio endpoint (el `user_id` grabado sale de la sesión validada del servidor), así que la escritura no necesita pasar por RLS.
 
-`src/app/api/chat/route.ts`:
-- `client.beta.messages.toolRunner({ model: "claude-opus-5", max_tokens: 16000, thinking: { type: "adaptive" }, tools, messages, stream: true })`
-- Streaming al cliente vía SSE.
-- System prompt: rol de asistente de la tienda, siempre citar productos reales devueltos por las tools, nunca inventar precios ni stock, responder en español.
-- Persistir turnos en `chat_messages` para continuidad de conversación.
+### UI (`src/components/chat/ChatWidget.tsx`)
 
-### UI
+Burbuja flotante montada en `(shop)/layout.tsx` (no en `/admin` ni `/login`/`/registro`) — estilo ChatGPT: panel con historial, streaming del texto a medida que llega, tarjetas de producto (imagen + precio, link a `/productos/[slug]`) debajo de la respuesta cuando la tool encontró productos.
 
-`src/app/(shop)/chat/page.tsx` + widget flotante en el layout de la tienda:
-- Lista de mensajes con streaming token a token.
-- Cuando una respuesta menciona productos, renderizar tarjetas clicables (link al detalle) a partir de los resultados de las tools — esto es lo que "conecta" chat y tienda de forma visible.
+### Verificado en esta sesión
+
+- Filtro estructurado ("productos de menos de 150.000") → `search_products_by_attributes`, resultados reales ordenados por precio.
+- Búsqueda semántica ("busco algo cómodo para hacer ejercicio") → `search_products_semantic`, el modelo aclaró que la tienda es de electrónica y sugirió alternativas razonables sin inventar nada.
+- Pregunta ajena al negocio ("cómo está el clima en Bogotá") → rechazada explícitamente, sin alucinar.
+- Estado de orden sin sesión iniciada → la tool no está disponible, el modelo lo explica y no inventa un estado.
+- Prueba visual en navegador: burbuja, streaming y tarjetas clicables funcionando; confirmado el fix de las tarjetas mezcladas (ver arriba).
 
 ---
 
@@ -252,7 +248,8 @@ src/lib/schemas/product.ts      Zod compartido (form + API + tool schema)
 src/lib/embeddings.ts           Voyage AI
 src/lib/chat/tools.ts           las 3 herramientas
 src/store/cart.ts               Zustand
-src/middleware.ts               sesión + protección de rutas
+src/proxy.ts                    sesión + protección de rutas (Next 16)
+src/components/chat/ChatWidget.tsx  UI del chat (widget flotante)
 supabase/migrations/*.sql
 scripts/backfill-embeddings.ts
 scripts/seed.ts                 ~40 productos variados de prueba
